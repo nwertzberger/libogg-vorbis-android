@@ -3,6 +3,8 @@
       package="com.capricorn.libogg.test"
       android:versionCode="1"
       android:versionName="1.0">
+    <uses-sdk android:minSdkVersion="9" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:required="true"/>
     <application android:label="@string/app_name" >
         <activity android:name="LibOggTest"
                   android:label="@string/app_name">
