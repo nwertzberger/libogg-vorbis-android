@@ -11,5 +11,26 @@ public class LibOggTest extends Activity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        short buf[] = new short[1000];
+        String fname = "/sdcard/testFile.ogg";
+
+        VorbisFileOutputStream s = new VorbisFileOutputStream(fname);
+        // create a square wave
+        for (int j=0; j < 1000; ) {
+            for (int i=0; i < 100 && j < 1000; i++) {
+                buf[j++] = (short) (5000);
+            }
+            for (int i=0; i < 100 && j< 1000; i++) {
+                buf[j++] = (short) (-5000);
+            }
+        }
+
+        s.write(buf);
+        for(int i=0; i < 1000; i++) {
+            s.write(buf);
+        }
+
+        // Save our 11 second ogg square wave.
+        s.close();
     }
 }
