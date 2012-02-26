@@ -1,23 +1,29 @@
 /* Programmer: Nicholas Wertzberger
  *
- * The Java interface (a la outputstream) for vorbis.
+ * The Java interface (a la outputstream) for vorbis encoding.  This acts
+ * roughly the way I would expect a Java OutputStream to act. I didn't bother
+ * trying to SWIG anythign around between the native world and java. In fact,
+ * I jsut have a statically allocate array to store data in here.
+ *
+ * http://svn.xiph.org/trunk/vorbis/examples/encoder_example.c
  */
 #include <jni.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
-#include <vorbis/codec.h>
 
+#include <vorbis/vorbisenc.h>
 #include <stream/util.h>
 
 /* I really don't want to figure out what vorbis is storing in their structs.
  * Let's just store it all in this here array and call it good.
  */
 
-/* This is arbitrary, and it's overkill */
+/* This is arbitrary, If you don't like it, do it better. */
 #define SAMPLE_SIZE 1024
 #define MAX_OUTPUTSTREAMS 4
+
 struct output_stream {
 	FILE * 				fh;
 	vorbis_info 		vi;
@@ -35,8 +41,13 @@ static struct output_stream output_streams[MAX_OUTPUTSTREAMS];
  * http://svn.xiph.org/trunk/vorbis/examples/encoder_example.c
  * Returns a pointer to the stream struct related to that current vorbis file.
  */
-jint Java_org_ideaheap_io_VorbisFileOutputStream_create(JNIEnv* env,
-		jobject this, jstring path, jobject options) {
+jint Java_org_ideaheap_io_VorbisFileOutputStream_create(
+		JNIEnv* env,
+		jobject this,
+		jstring path,
+		jobject options
+		)
+{
 	/* Configuration structs */
 	struct output_stream * optr = NULL;
 
@@ -80,13 +91,18 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_create(JNIEnv* env,
 	 */
 	vorbis_info_init(&optr->vi);
 
+	//jclass settings = (*env)->GetObjectClass();
+
 	/* TODO: make these options passed in. We definitely don't need stereo
 	 * most of the time.
 	 */
-	optr->channels = 2;
-	ret = vorbis_encode_init_vbr(&optr->vi, optr->channels, 44100, 0.1);
+	optr->channels = 1;
+    ret = ( vorbis_encode_setup_managed(&optr->vi,optr->channels,44100,-1,128000,-1) ||
+            vorbis_encode_ctl(&optr->vi,OV_ECTL_RATEMANAGE2_SET,NULL) ||
+            vorbis_encode_setup_init(&optr->vi));
 	if (ret) {
 		JNU_ThrowByName(env, "java/io/IOException", "Bad Bitrate", ret);
+		fclose(optr->fh);
 		return;
 	}
 
@@ -106,6 +122,13 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_create(JNIEnv* env,
 
 	if (ret) {
 		JNU_ThrowByName(env, "java/io/IOException", "header init error", ret);
+		ogg_stream_clear(&optr->os);
+		vorbis_block_clear(&optr->vb);
+		vorbis_dsp_clear(&optr->vd);
+		vorbis_comment_clear(&optr->vc);
+		vorbis_info_clear(&optr->vi);
+		fclose(optr->fh);
+		optr->fh = NULL;
 		return;
 	}
 
@@ -130,16 +153,29 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_create(JNIEnv* env,
 /* Write out to the file handle
  *
  */
-jint Java_org_ideaheap_io_VorbisFileOutputStream_writeStreamIdx(JNIEnv* env,
-		jobject this, jint sidx, jshortArray pcm) {
+jint Java_org_ideaheap_io_VorbisFileOutputStream_writeStreamIdx(
+		JNIEnv* env,
+		jobject this,
+		jint sidx,
+		jshortArray pcm,
+		jint offset,
+		jint length
+		)
+{
 
 	jshort * pcmShorts 			= (*env)->GetShortArrayElements(env, pcm, NULL);
-	long samples 				= (*env)->GetArrayLength(env, pcm);
+	int maxLength				= (*env)->GetArrayLength(env,pcm);
 	struct output_stream * optr = &output_streams[sidx];
 	int channels;
 	int i,j;
 	int eos = 0;
 
+	if (offset + length > maxLength) {
+		JNU_ThrowByName(env, "java/lang/ArrayIndexOutOfBoundsException",
+				"No data was read from the buffer",
+				offset + length - 1);
+		return;
+	}
 	if (sidx >= MAX_OUTPUTSTREAMS || sidx < 0 || optr->fh == NULL) {
 		JNU_ThrowByName(env, "java/io/IOException", "Invalid Stream Index",
 				sidx);
@@ -148,16 +184,16 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_writeStreamIdx(JNIEnv* env,
 
 	channels = optr->channels;
 
-	if (samples != 0) {
+	if (length != 0) {
 		/* data to encode */
 
 		/* expose the buffer to submit data */
 		float ** buffer = vorbis_analysis_buffer(&optr->vd, SAMPLE_SIZE*optr->channels);
 
 		/* uninterleave samples */
-		for (i = 0; i < samples / channels; i++) {
+		for (i = 0; i < length / channels; i++) {
 			for (j = 0; j < channels; j++) {
-				buffer[j][i] = pcmShorts[i*channels + j] / 32768.f;
+				buffer[j][i] = pcmShorts[i*channels + j + offset] / 32768.f;
 			}
 		}
 
@@ -165,7 +201,7 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_writeStreamIdx(JNIEnv* env,
 		vorbis_analysis_wrote(&optr->vd, i);
 	}
 
-	(*env)->ReleaseShortArrayElements(env, pcm, pcmShorts, 0);
+	(*env)->ReleaseShortArrayElements(env, pcm, pcmShorts, JNI_ABORT);
 	/* vorbis does some data preanalysis, then divvies up blocks for
 	 more involved (potentially parallel) processing.  Get a single
 	 block for encoding now */
@@ -201,7 +237,11 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_writeStreamIdx(JNIEnv* env,
  * Clean up stream info.
  */
 void Java_org_ideaheap_io_VorbisFileOutputStream_closeStreamIdx(
-		JNIEnv* env, jobject this, jint sidx) {
+		JNIEnv* env,
+		jobject this,
+		jint sidx
+		)
+{
 	struct output_stream * optr = &output_streams[sidx];
 	if (sidx >= MAX_OUTPUTSTREAMS || sidx < 0 || optr->fh == NULL) {
 		JNU_ThrowByName(env, "java/io/IOException", "Invalid Stream Index", sidx);
@@ -216,3 +256,4 @@ void Java_org_ideaheap_io_VorbisFileOutputStream_closeStreamIdx(
 	fclose(optr->fh);
 	optr->fh = NULL;
 }
+

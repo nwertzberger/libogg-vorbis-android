@@ -40,11 +40,41 @@ public class VorbisFileOutputStream implements Closeable {
 		this.closeStreamIdx(this.oggStreamIdx);
 	}
 	
-	public int write(final short [] buffer) throws IOException {
-		return this.writeStreamIdx(this.oggStreamIdx, buffer);
+	/**
+	 * Please god never use this.  It works, but this is very inefficient.
+	 * @param buf
+	 * @return
+	 * @throws IOException
+	 */
+	public int write(final short buf) throws IOException {
+		short [] bufArray = new short[1];
+		bufArray[0] = buf;
+		return this.writeStreamIdx(this.oggStreamIdx, bufArray, 0, 1);
 	}
 	
-	private native int writeStreamIdx(int idx, short [] pcmdata) throws IOException;
+	/**
+	 * Write PCM data to ogg.  This assumes that you pass your streams in interleaved.
+	 * @param buffer
+	 * @param offset
+	 * @param length
+	 * @return
+	 * @throws IOException
+	 */
+	public int write(final short [] buffer, int offset, int length) throws IOException {
+		return this.writeStreamIdx(this.oggStreamIdx, buffer, 0, length);
+	}
+	
+	/**
+	 * Write PCM data to ogg. This assumes you pass streams in interleaved.
+	 * @param buffer
+	 * @return
+	 * @throws IOException
+	 */
+	public int write(final short [] buffer) throws IOException {
+		return this.writeStreamIdx(this.oggStreamIdx, buffer, 0, buffer.length);
+	}
+	
+	private native int writeStreamIdx(int idx, short [] pcmdata, int offset, int size) throws IOException;
 	private native void closeStreamIdx(int idx) throws IOException;
 	private native int create(String path, VorbisInfo s) throws IOException;
 }
