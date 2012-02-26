@@ -34,10 +34,10 @@ public class VorbisInfo {
 	public int 		sampleRate = 44100;
 	
 	/**
-	 * The recording quality (bps) of the encoding. This is not currently
-	 * set for the decoder.
+	 * The recording quality of the encoding. This is not currently
+	 * set for the decoder. The range goes from -.1 (worst) to 1 (best)
 	 */
-	public int 		quality = 128000;
+	public float 	quality = 0.4f;
 	
 	/**
 	 * the total number of samples from the recording. This field means

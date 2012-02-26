@@ -17,8 +17,7 @@
 #include <stream/util.h>
 
 /* This is arbitrary, If you don't like it, do it better. */
-#define SAMPLE_SIZE 1024
-#define MAX_INPUTSTREAMS 4
+#define MAX_INPUTSTREAMS 8
 
 struct input_stream {
 	FILE * 				fh;

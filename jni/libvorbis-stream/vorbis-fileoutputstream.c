@@ -21,7 +21,6 @@
  */
 
 /* This is arbitrary, If you don't like it, do it better. */
-#define SAMPLE_SIZE 1024
 #define MAX_OUTPUTSTREAMS 4
 
 struct output_stream {
@@ -63,7 +62,8 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_create(
 	int ret; /* Return code storage for function calls */
 	int eos = 0; /* End of Stream */
 	int stream_idx;
-	int sample_rate, quality;
+	int sample_rate;
+	float quality;
 
 	/* Find an unused output_stream */
 	for (stream_idx = 0; stream_idx < MAX_OUTPUTSTREAMS; stream_idx++) {
@@ -101,19 +101,17 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_create(
 	 */
 	channels_field = (*env)->GetFieldID(env, cls, "channels", "I");
 	sample_rate_field = (*env)->GetFieldID(env, cls, "sampleRate", "I");
-	quality_field = (*env)->GetFieldID(env, cls, "quality", "I");
+	quality_field = (*env)->GetFieldID(env, cls, "quality", "F");
 
 	optr->channels = (*env)->GetIntField(env, info, channels_field);
 	sample_rate = (*env)->GetIntField(env, info, sample_rate_field);
-	quality = (*env)->GetIntField(env, info, quality_field);
+	quality = (*env)->GetFloatField(env, info, quality_field);
 
 	/* TODO: Optimize this for speed more? */
-    ret = ( vorbis_encode_setup_managed(&optr->vi,optr->channels,sample_rate,-1,quality,-1) ||
-            vorbis_encode_ctl(&optr->vi,OV_ECTL_RATEMANAGE2_SET,NULL) ||
-            vorbis_encode_setup_init(&optr->vi));
+    ret = vorbis_encode_init_vbr(&optr->vi,optr->channels,sample_rate,quality);
 
 	if (ret) {
-		JNU_ThrowByName(env, "java/io/IOException", "Bad Bitrate", ret);
+		JNU_ThrowByName(env, "java/io/IOException", "Bad Encoding options", ret);
 		fclose(optr->fh);
 		return;
 	}
@@ -200,7 +198,7 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_writeStreamIdx(
 		/* data to encode */
 
 		/* expose the buffer to submit data */
-		float ** buffer = vorbis_analysis_buffer(&optr->vd, SAMPLE_SIZE*optr->channels);
+		float ** buffer = vorbis_analysis_buffer(&optr->vd, length);
 
 		/* uninterleave samples */
 		for (i = 0; i < length / channels; i++) {
