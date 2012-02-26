@@ -13,5 +13,17 @@ This class has defaults that work well for the Android environment.
 VorbisInfo
 ----------
 
+The VorbisInfo object includes several fields. These all are set to defaults
+that make sense. Read the comments for more information.
+
+Supported Devices
+-----------------
+
+After trying this with software-emulated floating point, it became apparent
+that floating point operations are required to make this project worth your
+time. The libraries are set to compile natively to requiring a floating point
+coprocessor. This, unfortunately, means that you will crash on an emulator.
+
+This code has been lightly tested on an HTC Incredible.
 
 
