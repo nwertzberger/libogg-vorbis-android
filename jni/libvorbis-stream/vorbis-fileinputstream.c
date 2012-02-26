@@ -36,7 +36,7 @@ jint Java_org_ideaheap_io_VorbisFileInputStream_create(
 		)
 {
 	int ret;	/* Debugging variable */
-	jfieldID channels_field, rate_field, length_field;	/* JNI field ID */
+	jfieldID channels_field, sample_rate_field, length_field;	/* JNI field ID */
 	jclass cls = (*env)->GetObjectClass(env, info);
 	int stream_idx;
 	struct input_stream * iptr;
@@ -80,9 +80,9 @@ jint Java_org_ideaheap_io_VorbisFileInputStream_create(
 	}
 
 	channels_field = (*env)->GetFieldID(env, cls, "channels", "I");
-	rate_field = (*env)->GetFieldID(env, cls, "rate", "I");
+	sample_rate_field = (*env)->GetFieldID(env, cls, "sampleRate", "I");
 	length_field = (*env)->GetFieldID(env, cls, "length", "J");
-	if (channels_field == NULL || rate_field == NULL) {
+	if (channels_field == NULL || sample_rate_field == NULL) {
 		JNU_ThrowByName(env, "java/lang/Exception",
 				"Native Field Misnamed", 0);
 		ov_clear(&iptr->vf);
@@ -98,7 +98,7 @@ jint Java_org_ideaheap_io_VorbisFileInputStream_create(
 
 	/* Populate basic stream info into the VorbisInfo object. */
 	(*env)->SetIntField(env, info, channels_field, vi->channels);
-	(*env)->SetIntField(env, info, rate_field, vi->rate);
+	(*env)->SetIntField(env, info, sample_rate_field, vi->rate);
 	(*env)->SetLongField(env, info, length_field, iptr->length);
 
 

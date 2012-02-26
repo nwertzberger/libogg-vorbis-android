@@ -45,11 +45,15 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_create(
 		JNIEnv* env,
 		jobject this,
 		jstring path,
-		jobject options
+		jobject info
 		)
 {
 	/* Configuration structs */
 	struct output_stream * optr = NULL;
+
+	/* JNI field ID's */
+	jfieldID channels_field, sample_rate_field, quality_field;
+	jclass cls = (*env)->GetObjectClass(env, info);
 
 	/* packet stream structs */
 	ogg_packet header;
@@ -59,6 +63,7 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_create(
 	int ret; /* Return code storage for function calls */
 	int eos = 0; /* End of Stream */
 	int stream_idx;
+	int sample_rate, quality;
 
 	/* Find an unused output_stream */
 	for (stream_idx = 0; stream_idx < MAX_OUTPUTSTREAMS; stream_idx++) {
@@ -91,15 +96,22 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_create(
 	 */
 	vorbis_info_init(&optr->vi);
 
-	//jclass settings = (*env)->GetObjectClass();
-
 	/* TODO: make these options passed in. We definitely don't need stereo
 	 * most of the time.
 	 */
-	optr->channels = 1;
-    ret = ( vorbis_encode_setup_managed(&optr->vi,optr->channels,44100,-1,128000,-1) ||
+	channels_field = (*env)->GetFieldID(env, cls, "channels", "I");
+	sample_rate_field = (*env)->GetFieldID(env, cls, "sampleRate", "I");
+	quality_field = (*env)->GetFieldID(env, cls, "quality", "I");
+
+	optr->channels = (*env)->GetIntField(env, info, channels_field);
+	sample_rate = (*env)->GetIntField(env, info, sample_rate_field);
+	quality = (*env)->GetIntField(env, info, quality_field);
+
+	/* TODO: Optimize this for speed more? */
+    ret = ( vorbis_encode_setup_managed(&optr->vi,optr->channels,sample_rate,-1,quality,-1) ||
             vorbis_encode_ctl(&optr->vi,OV_ECTL_RATEMANAGE2_SET,NULL) ||
             vorbis_encode_setup_init(&optr->vi));
+
 	if (ret) {
 		JNU_ThrowByName(env, "java/io/IOException", "Bad Bitrate", ret);
 		fclose(optr->fh);
