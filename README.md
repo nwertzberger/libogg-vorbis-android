@@ -27,3 +27,10 @@ coprocessor. This, unfortunately, means that you will crash on an emulator.
 This code has been lightly tested on an HTC Incredible.
 
 
+License
+-------
+
+The C code used to interface with Xiph.org's liboggvorbis is under whatever
+license they are under, especially because the code is closely related to
+their sample code. The Java code is also under the same license, just for
+simplicity's sake.
