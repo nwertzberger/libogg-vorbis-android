@@ -1,4 +1,4 @@
-package org.ideaheap.io;
+package com.ideaheap.io;
 
 import java.io.Closeable;
 import java.io.File;

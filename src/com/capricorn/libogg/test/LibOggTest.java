@@ -5,7 +5,7 @@ import android.os.Bundle;
 
 import java.io.IOException;
 
-import org.ideaheap.io.VorbisFileOutputStream;
+import com.ideaheap.io.VorbisFileOutputStream;
 
 public class LibOggTest extends Activity
 {

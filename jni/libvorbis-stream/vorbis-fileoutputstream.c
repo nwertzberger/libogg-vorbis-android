@@ -40,7 +40,7 @@ static struct output_stream output_streams[MAX_OUTPUTSTREAMS];
  * http://svn.xiph.org/trunk/vorbis/examples/encoder_example.c
  * Returns a pointer to the stream struct related to that current vorbis file.
  */
-jint Java_org_ideaheap_io_VorbisFileOutputStream_create(
+jint Java_com_ideaheap_io_VorbisFileOutputStream_create(
 		JNIEnv* env,
 		jobject this,
 		jstring path,
@@ -163,7 +163,7 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_create(
 /* Write out to the file handle
  *
  */
-jint Java_org_ideaheap_io_VorbisFileOutputStream_writeStreamIdx(
+jint Java_com_ideaheap_io_VorbisFileOutputStream_writeStreamIdx(
 		JNIEnv* env,
 		jobject this,
 		jint sidx,
@@ -246,7 +246,7 @@ jint Java_org_ideaheap_io_VorbisFileOutputStream_writeStreamIdx(
 /*
  * Clean up stream info.
  */
-void Java_org_ideaheap_io_VorbisFileOutputStream_closeStreamIdx(
+void Java_com_ideaheap_io_VorbisFileOutputStream_closeStreamIdx(
 		JNIEnv* env,
 		jobject this,
 		jint sidx

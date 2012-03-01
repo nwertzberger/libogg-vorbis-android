@@ -27,7 +27,7 @@ struct input_stream {
 };
 static struct input_stream input_streams[MAX_INPUTSTREAMS];
 
-jint Java_org_ideaheap_io_VorbisFileInputStream_create(
+jint Java_com_ideaheap_io_VorbisFileInputStream_create(
 		JNIEnv* env,
 		jobject this,
 		jstring path,
@@ -104,7 +104,7 @@ jint Java_org_ideaheap_io_VorbisFileInputStream_create(
 	return stream_idx;
 }
 
-jint Java_org_ideaheap_io_VorbisFileInputStream_readStreamIdx(
+jint Java_com_ideaheap_io_VorbisFileInputStream_readStreamIdx(
 		JNIEnv* 	env,
 		jobject 	this,
 		jint		sidx,
@@ -154,7 +154,7 @@ jint Java_org_ideaheap_io_VorbisFileInputStream_readStreamIdx(
 	return ret >> 1;
 }
 
-jlong Java_org_ideaheap_io_VorbisFileInputStream_skipStreamIdx(
+jlong Java_com_ideaheap_io_VorbisFileInputStream_skipStreamIdx(
 		JNIEnv* 	env,
 		jobject 	this,
 		jint		sidx,
@@ -183,7 +183,7 @@ jlong Java_org_ideaheap_io_VorbisFileInputStream_skipStreamIdx(
 
 }
 
-void Java_org_ideaheap_io_VorbisFileInputStream_closeStreamIdx(
+void Java_com_ideaheap_io_VorbisFileInputStream_closeStreamIdx(
 		JNIEnv* 	env,
 		jobject 	this,
 		jint		sidx
