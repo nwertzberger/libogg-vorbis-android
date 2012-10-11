@@ -1,2 +1,10 @@
 *.properties
 proguard.cfg
+libs
+obj
+gen
+bin
+tests/bin
+tests/gen
+tests/obj
+tests/libs
