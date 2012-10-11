@@ -34,3 +34,19 @@ The C code used to interface with Xiph.org's liboggvorbis is under whatever
 license they are under, especially because the code is closely related to
 their sample code. The Java code is also under the same license, just for
 simplicity's sake.
+
+Usage
+-----
+
+This is set up to be used with the following two Interfaces / classes:
+* AudioOutputStream / VorbisFileOutputStream
+* AudioInputStream / VorbisFileInputStream
+
+visit these two classes for more information. They both extend the respective
+input/output streams. The VorbisFileOutputStream requires the use of a
+VorbisInfo object in order to specify some information about the file it is
+opening.
+
+Both these streams interface with Java as PCM data.
+
+
