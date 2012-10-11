@@ -1,10 +1,23 @@
-*.properties
-proguard.cfg
-libs
-obj
-gen
-bin
+# built application files
+*.apk
+*.ap_
+
+# files for the dex VM
+*.dex
+
+# Java class files
+*.class
+
+# generated files
+bin/
+gen/
+obj/
+libs/
+
 tests/bin
 tests/gen
 tests/obj
 tests/libs
+
+# Local configuration file (sdk path, etc)
+local.properties
