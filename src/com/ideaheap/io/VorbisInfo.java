@@ -1,7 +1,5 @@
 package com.ideaheap.io;
 
-import java.io.File;
-
 /**
  * A class used to pass vorbis file info to the encoder and find out what
  * kind of file was received by the decoder.

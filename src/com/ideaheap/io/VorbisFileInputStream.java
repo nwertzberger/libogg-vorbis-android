@@ -1,6 +1,5 @@
 package com.ideaheap.io;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 /**
@@ -8,7 +7,7 @@ import java.io.IOException;
  * @author nwertzberger
  *
  */
-public class VorbisFileInputStream implements Closeable {
+public class VorbisFileInputStream extends AudioInputStream {
 
 	private final VorbisInfo info;
 	
@@ -38,16 +37,6 @@ public class VorbisFileInputStream implements Closeable {
 	}
 	
 	/**
-	 * Returns the interleaved PCM data from the vorbis stream.
-	 * @param pcmBuffer
-	 * @return
-	 * @throws IOException
-	 */
-	public int read(short[] pcmBuffer) throws IOException {
-		return this.readStreamIdx(oggStreamIdx, pcmBuffer, 0, pcmBuffer.length);
-	}
-	
-	/**
 	 * Returns interleaved PCM data from the vorbis stream.
 	 * @param pcmBuffer
 	 * @param offset
@@ -57,17 +46,6 @@ public class VorbisFileInputStream implements Closeable {
 	 */
 	public int read(short[] pcmBuffer, int offset, int length) throws IOException {
 		return this.readStreamIdx(oggStreamIdx, pcmBuffer, offset, length);
-	}
-	
-	/**
-	 * Returns interleaved PCM data from the vorbis stream.
-	 * @return
-	 * @throws IOException
-	 */
-	public short read() throws IOException {
-		short buf[] = new short[1];
-		if (this.readStreamIdx(oggStreamIdx, buf, 0, 1) == -1) return -1;
-		else return buf[0]; 
 	}
 	
 	private native int create(String fname, VorbisInfo info) throws IOException;
