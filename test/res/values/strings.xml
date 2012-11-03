@@ -2,6 +2,6 @@
 <resources>
 
     <string name="hello">Hello World!</string>
-    <string name="app_name">PracticeMateTest</string>
+    <string name="app_name">libogg-vorbis-test</string>
 
 </resources>

@@ -79,14 +79,7 @@ jint Java_com_ideaheap_io_VorbisFileOutputStream_create(
 			optr->fh = fopen(pchars, "w");
 			if (optr->fh == NULL) {
 				char * message = "Error Creating File Handle. ";
-				char * error = strerror(errno);
-				char * buf = malloc(strlen(error) + strlen(message) + 1);
-				strcpy(buf, message);
-				strcat(buf, error);
-
-				JNU_ThrowByName(env, "java/io/IOException", buf, errno);
-
-                free(buf);
+				JNU_ThrowByName(env, "java/io/IOException", message, errno);
 				return;
 			}
 			(*env)->ReleaseStringUTFChars(env, path, pchars);

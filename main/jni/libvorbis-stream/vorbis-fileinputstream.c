@@ -53,8 +53,7 @@ jint Java_com_ideaheap_io_VorbisFileInputStream_create(
 			iptr = &input_streams[stream_idx];
 			iptr->fh = fopen(pchars, "r");
 			if (iptr->fh == NULL) {
-				JNU_ThrowByName(env, "java/io/IOException",
-						"Error Creating File Handle", 0);
+				JNU_ThrowByName(env, "java/io/IOException", "Error Creating File Handle", 0);
 				return;
 			}
 			(*env)->ReleaseStringUTFChars(env, path, pchars);
