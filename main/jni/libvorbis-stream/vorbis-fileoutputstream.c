@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
+#include <errno.h>
 
 #include <vorbis/vorbisenc.h>
 #include <stream/util.h>
@@ -77,8 +78,14 @@ jint Java_com_ideaheap_io_VorbisFileOutputStream_create(
 			optr = &output_streams[stream_idx];
 			optr->fh = fopen(pchars, "w");
 			if (optr->fh == NULL) {
-				JNU_ThrowByName(env, "java/io/IOException",
-						"Error Creating File Handle", 0);
+				char * message = "Error Creating File Handle. ";
+				char * error = strerror(errno);
+				char * buf = malloc(strlen(error) + strlen(message) + 1);
+				strcpy(buf, message);
+				strcat(buf, error);
+				JNU_ThrowByName(env, "java/io/IOException", buf, errno);
+
+
 				return;
 			}
 			(*env)->ReleaseStringUTFChars(env, path, pchars);

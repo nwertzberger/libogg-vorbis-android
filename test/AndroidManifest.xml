@@ -4,12 +4,12 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
-    <uses-sdk android:minSdkVersion="7" />
+    <uses-sdk android:minSdkVersion="9" />
 
     <instrumentation
         android:functionalTest="true"
         android:name="android.test.InstrumentationTestRunner"
-        android:targetPackage="com.ideaheap.vorbis" />
+        android:targetPackage="com.ideaheap.vorbis.test" />
 
     <application
         android:icon="@drawable/ic_launcher"
