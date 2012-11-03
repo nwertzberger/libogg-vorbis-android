@@ -7,13 +7,13 @@ import android.test.AndroidTestCase;
 public class VorbisFileOutputStreamTest extends AndroidTestCase {
 	
 	public void testOpenClose() throws Exception {
-		VorbisFileOutputStream s = new VorbisFileOutputStream("/sdcard/empty.ogg");
+		VorbisFileOutputStream s = new VorbisFileOutputStream("empty.ogg");
 		s.close();
 	}
 	
 	public void testSquareWave() throws Exception {
 		short buf[] = new short[1000];
-		String fname = "/sdcard/squareWave.ogg";
+		String fname = "squareWave.ogg";
 		
 		VorbisFileOutputStream s = new VorbisFileOutputStream(fname);
 		// Write a square wave
@@ -36,7 +36,7 @@ public class VorbisFileOutputStreamTest extends AndroidTestCase {
 	}
 	public void testWhiteNoise() throws Exception {
 		short buf[] = new short[1000];
-		String fname = "/sdcard/whiteNoise.ogg";
+		String fname = "whiteNoise.ogg";
 		
 		VorbisFileOutputStream s = new VorbisFileOutputStream(fname);
 		// Write a square wave

@@ -83,9 +83,10 @@ jint Java_com_ideaheap_io_VorbisFileOutputStream_create(
 				char * buf = malloc(strlen(error) + strlen(message) + 1);
 				strcpy(buf, message);
 				strcat(buf, error);
+
 				JNU_ThrowByName(env, "java/io/IOException", buf, errno);
 
-
+                free(buf);
 				return;
 			}
 			(*env)->ReleaseStringUTFChars(env, path, pchars);
