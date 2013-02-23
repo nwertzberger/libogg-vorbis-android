@@ -48,7 +48,7 @@ public class VorbisFileOutputStream extends AudioOutputStream {
 	 */
 	@Override
 	public int write(final short [] buffer, int offset, int length) throws IOException {
-		return this.writeStreamIdx(this.oggStreamIdx, buffer, 0, length);
+		return this.writeStreamIdx(this.oggStreamIdx, buffer, offset, length);
 	}
 	
 	private native int writeStreamIdx(int idx, short [] pcmdata, int offset, int size) throws IOException;
