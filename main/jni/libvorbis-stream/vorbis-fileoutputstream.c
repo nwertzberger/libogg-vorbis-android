@@ -259,6 +259,20 @@ void Java_com_ideaheap_io_VorbisFileOutputStream_closeStreamIdx(
 		return;
 	}
 	vorbis_analysis_wrote(&optr->vd, 0);
+	
+	while (vorbis_analysis_blockout(&optr->vd, &optr->vb) == 1) {
+		vorbis_analysis(&optr->vb, NULL);
+		vorbis_bitrate_addblock(&optr->vb);
+		while (vorbis_bitrate_flushpacket(&optr->vd, &optr->op)) {
+			ogg_stream_packetin(&optr->os, &optr->op);
+		}
+	}
+
+	while (ogg_stream_pageout(&optr->os, &optr->og) <= 0 ? 0 : 1) {
+		fwrite(optr->og.header, 1, optr->og.header_len, optr->fh);
+		fwrite(optr->og.body, 1, optr->og.body_len, optr->fh);
+	}
+	
 	ogg_stream_clear(&optr->os);
 	vorbis_block_clear(&optr->vb);
 	vorbis_dsp_clear(&optr->vd);
