@@ -17,7 +17,7 @@ public class VorbisFileOutputStream extends AudioOutputStream {
 	// The index into native memory where the ogg stream info is stored.
 	private final int oggStreamIdx;
 	private VorbisInfo info;
-	
+    private static final int VORBIS_BLOCK_SIZE = 1024;
 	
 	static {
 		System.loadLibrary("ogg");
@@ -47,8 +47,8 @@ public class VorbisFileOutputStream extends AudioOutputStream {
 	 * @throws IOException
 	 */
 	@Override
-	public int write(final short [] buffer, int offset, int length) throws IOException {
-		return this.writeStreamIdx(this.oggStreamIdx, buffer, offset, length);
+	public void write(final short [] buffer, int offset, int length) throws IOException {
+        this.writeStreamIdx(this.oggStreamIdx, buffer, offset, length);
 	}
 	
 	private native int writeStreamIdx(int idx, short [] pcmdata, int offset, int size) throws IOException;

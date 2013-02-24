@@ -42,5 +42,5 @@ public class VorbisInfo {
 	 * nothing to the encoder.
 	 */
 	public long		length;
-
+	
 }

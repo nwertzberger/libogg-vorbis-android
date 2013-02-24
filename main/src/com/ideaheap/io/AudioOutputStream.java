@@ -18,12 +18,13 @@ public abstract class AudioOutputStream extends OutputStream implements Closeabl
 		this.write(buffer, 0, buffer.length);
 	}
 	
-	public int write(final short [] buffer) throws IOException {
-		return this.write(buffer, 0, buffer.length);
+	public void write(final short [] buffer) throws IOException {
+		this.write(buffer, 0, buffer.length);
 	}
 	
-	public abstract int write(final short [] buffer, int offset, int length)
+	public abstract void write(final short [] buffer, int offset, int length)
 		throws IOException;
+
 	public abstract int getSampleRate();
 	public abstract void close() throws IOException;
 }

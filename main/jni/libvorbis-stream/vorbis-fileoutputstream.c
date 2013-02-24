@@ -23,6 +23,7 @@
 
 /* This is arbitrary, If you don't like it, do it better. */
 #define MAX_OUTPUTSTREAMS 4
+#define MAX_VORBIS_CHUNKSIZE 1024
 
 struct output_stream {
 	FILE * 				fh;
@@ -195,14 +196,21 @@ jint Java_com_ideaheap_io_VorbisFileOutputStream_writeStreamIdx(
 
 	channels = optr->channels;
 
-	if (length != 0) {
-		/* data to encode */
+	while (length > 0) {
+		/* Data to encode:
+         * According to this: http://xiph.org/vorbis/doc/libvorbis/vorbis_analysis_buffer.html
+         *
+         * A "reasonable" chunk size is 1024. Due to some sampling issues, we
+         * are going to force this to be the max size.
+         */ 
+        int chunksize = length;
+        if (chunksize > MAX_VORBIS_CHUNKSIZE) chunksize = MAX_VORBIS_CHUNKSIZE;
 
 		/* expose the buffer to submit data */
-		float ** buffer = vorbis_analysis_buffer(&optr->vd, length);
+		float ** buffer = vorbis_analysis_buffer(&optr->vd, chunksize);
 
 		/* uninterleave samples */
-		for (i = 0; i < length / channels; i++) {
+		for (i = 0; i < chunksize / channels; i++) {
 			for (j = 0; j < channels; j++) {
 				buffer[j][i] = pcmShorts[i*channels + j + offset] / 32768.f;
 			}
@@ -210,39 +218,42 @@ jint Java_com_ideaheap_io_VorbisFileOutputStream_writeStreamIdx(
 
 		/* tell the library how much we actually submitted */
 		vorbis_analysis_wrote(&optr->vd, i);
-	}
 
+        length -= i*channels + j;
+        offset += i*channels + j;
+
+        /* vorbis does some data preanalysis, then divvies up blocks for
+         more involved (potentially parallel) processing.  Get a single
+         block for encoding now */
+        while (vorbis_analysis_blockout(&optr->vd, &optr->vb) == 1) {
+
+            /* analysis, assume we want to use bitrate management */
+            vorbis_analysis(&optr->vb, NULL);
+            vorbis_bitrate_addblock(&optr->vb);
+
+            while (vorbis_bitrate_flushpacket(&optr->vd, &optr->op)) {
+
+                /* weld the packet into the bitstream */
+                ogg_stream_packetin(&optr->os, &optr->op);
+
+                /* write out pages (if any) */
+                while (!eos) {
+                    int result = ogg_stream_pageout(&optr->os, &optr->og);
+                    if (result == 0)
+                        break;
+                    fwrite(optr->og.header, 1, optr->og.header_len, optr->fh);
+                    fwrite(optr->og.body, 1, optr->og.body_len, optr->fh);
+
+                    /* this could be set above, but for illustrative purposes, I do
+                     it here (to show that vorbis does know where the stream ends) */
+
+                    if (ogg_page_eos(&optr->og))
+                        eos = 1;
+                }
+            }
+        }
+    }
 	(*env)->ReleaseShortArrayElements(env, pcm, pcmShorts, JNI_ABORT);
-	/* vorbis does some data preanalysis, then divvies up blocks for
-	 more involved (potentially parallel) processing.  Get a single
-	 block for encoding now */
-	while (vorbis_analysis_blockout(&optr->vd, &optr->vb) == 1) {
-
-		/* analysis, assume we want to use bitrate management */
-		vorbis_analysis(&optr->vb, NULL);
-		vorbis_bitrate_addblock(&optr->vb);
-
-		while (vorbis_bitrate_flushpacket(&optr->vd, &optr->op)) {
-
-			/* weld the packet into the bitstream */
-			ogg_stream_packetin(&optr->os, &optr->op);
-
-			/* write out pages (if any) */
-			while (!eos) {
-				int result = ogg_stream_pageout(&optr->os, &optr->og);
-				if (result == 0)
-					break;
-				fwrite(optr->og.header, 1, optr->og.header_len, optr->fh);
-				fwrite(optr->og.body, 1, optr->og.body_len, optr->fh);
-
-				/* this could be set above, but for illustrative purposes, I do
-				 it here (to show that vorbis does know where the stream ends) */
-
-				if (ogg_page_eos(&optr->og))
-					eos = 1;
-			}
-		}
-	}
 }
 /*
  * Clean up stream info.
@@ -268,7 +279,7 @@ void Java_com_ideaheap_io_VorbisFileOutputStream_closeStreamIdx(
 		}
 	}
 
-	while (ogg_stream_pageout(&optr->os, &optr->og) <= 0 ? 0 : 1) {
+	while (ogg_stream_pageout(&optr->os, &optr->og) > 0) {
 		fwrite(optr->og.header, 1, optr->og.header_len, optr->fh);
 		fwrite(optr->og.body, 1, optr->og.body_len, optr->fh);
 	}
