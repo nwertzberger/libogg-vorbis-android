@@ -219,8 +219,8 @@ jint Java_com_ideaheap_io_VorbisFileOutputStream_writeStreamIdx(
         /* tell the library how much we actually submitted */
         vorbis_analysis_wrote(&optr->vd, i);
 
-        length -= i*channels + j;
-        offset += i*channels + j;
+        length -= i*channels;
+        offset += i*channels;
 
         /* vorbis does some data preanalysis, then divvies up blocks for
            more involved (potentially parallel) processing.  Get a single
